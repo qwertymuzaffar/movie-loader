@@ -1,0 +1,26 @@
+<div class="container" *ngIf="movie">
+    <div class="title">
+        <h1>{{movie.title}}</h1>
+    </div>
+    <div class="movie-block">
+        <div class="movie-block__content">
+            <p>{{movie.overview}}</p>
+            <p>Rating: {{movie.vote_average}}</p>
+            <p>Release date: {{movie.release_date | date:'MMM d, y, h:mm a'}}</p>
+        </div>
+    </div>
+
+    <div class="trailer-block">
+        <div class="trailer-block__content">
+            <h2>Trailers:</h2>
+            <div class="list-group" *ngIf="trailers?.results">
+                <ng-container *ngFor="let trailer of trailers.results">
+                    <div class="list-group-item">
+                        <h3>{{trailer.name}}</h3>
+                        <iframe width="560" height="315" [src]="trailer.url" frameborder="0" allowfullscreen></iframe>
+                    </div>
+                </ng-container>
+            </div>
+        </div>
+    </div>
+</div>

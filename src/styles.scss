@@ -1,0 +1,13 @@
+/* You can add global styles to this file, and also import other style files */
+@import '~angular2-toaster/toaster.css';
+
+.title {
+    margin-bottom: 24px;
+    border-bottom: 1px solid #ced4da;
+}
+
+input {
+    &.error {
+        border: solid 2px #f66462;
+    }
+}

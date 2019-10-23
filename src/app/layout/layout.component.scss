@@ -1,0 +1,12 @@
+.wrapper {
+    width: 1170px;
+    margin: auto;
+    padding: 48px 0;
+}
+
+@media (max-width: 1169px) {
+    .wrapper {
+        width: 100%;
+        padding: 16px 0;
+    }
+}

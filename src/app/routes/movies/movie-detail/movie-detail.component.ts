@@ -1,4 +1,5 @@
 import {Component, OnDestroy, OnInit} from '@angular/core';
+import {DomSanitizer} from '@angular/platform-browser';
 import {ActivatedRoute} from '@angular/router';
 import {takeUntil} from 'rxjs/operators';
 import {Subject} from 'rxjs';
@@ -6,7 +7,6 @@ import {Subject} from 'rxjs';
 import {MoviesService} from '../movies.service';
 
 import {Movie, TrailersResponse} from '../movies.interface';
-import {DomSanitizer} from '@angular/platform-browser';
 
 @Component({
     selector: 'app-movie-detail',
@@ -16,13 +16,16 @@ import {DomSanitizer} from '@angular/platform-browser';
 export class MovieDetailComponent implements OnInit, OnDestroy {
 
     movieId: number;
-    destroy$ = new Subject();
     movie: Movie;
     trailers: TrailersResponse;
-    constructor(private route: ActivatedRoute,
-                private moviesService: MoviesService,
-                private sanitizer: DomSanitizer) {
-        this.movieId = Number(this.route.snapshot.params['movieId']);
+
+    private destroy$ = new Subject();
+
+    constructor(
+        private route: ActivatedRoute,
+        private moviesService: MoviesService,
+        private sanitizer: DomSanitizer) {
+        this.movieId = +this.route.snapshot.params.movieId;
     }
 
     ngOnInit() {
@@ -33,37 +36,31 @@ export class MovieDetailComponent implements OnInit, OnDestroy {
     private getMovie(movieId: number) {
         this.moviesService.getMovie(movieId)
             .pipe(takeUntil(this.destroy$))
-            .subscribe((x) => {
-                if (x) {
-                    this.movie = x;
-                }
+            .subscribe((movie: Movie) => {
+                this.movie = movie;
             });
     }
 
     private getVideos(movieId: number) {
         this.moviesService.getVideos(movieId)
             .pipe(takeUntil(this.destroy$))
-            .subscribe((x) => {
-                if (x) {
-
-                    if (!x.results.length) {
-                        return;
-                    }
-
-                    for (let i = 0; i < x.results.length; i++) {
-                        const video = x.results[i];
-
-                        if (video.site === 'YouTube') {
-                            video.url = this.cleanURL(`https://www.youtube.com/embed/${video.key}`);
-                        }
-                    }
-
-                    this.trailers = x;
+            .subscribe((trailers: TrailersResponse) => {
+                if (trailers && trailers.results.length) {
+                    this.setTrailersURL(trailers);
+                    this.trailers = trailers;
                 }
             });
     }
 
-    private cleanURL(oldURL: string)  {
+    private setTrailersURL(trailers) {
+        for (const trailer of trailers.results) {
+            if (trailer.site === 'YouTube') {
+                trailer.url = this.cleanURL(`https://www.youtube.com/embed/${trailer.key}`);
+            }
+        }
+    }
+
+    private cleanURL(oldURL: string) {
         return this.sanitizer.bypassSecurityTrustResourceUrl(oldURL);
     }
 

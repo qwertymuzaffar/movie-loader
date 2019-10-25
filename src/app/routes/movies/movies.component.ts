@@ -1,6 +1,6 @@
 import {Component, OnDestroy, OnInit} from '@angular/core';
 import {takeUntil} from 'rxjs/operators';
-import {Subject} from 'rxjs';
+import {Subject, Subscription} from 'rxjs';
 
 import {MoviesService} from './movies.service';
 import {MoviesResponse, Genre} from './movies.interface';
@@ -16,27 +16,27 @@ export class MoviesComponent implements OnInit, OnDestroy {
     genres: Genre[];
 
     private destroy$ = new Subject();
-    constructor(private moviesService: MoviesService) {
+    private sub$: Subscription;
+    constructor(
+        private moviesService: MoviesService) {
     }
 
     ngOnInit() {
-        this.getMovies(null);
+        this.getMovies();
         this.getGenres();
     }
 
     onGenreChange(e) {
         const value = Number(e.target.value);
-
         this.getMovies(value);
     }
 
-    private getMovies(genreId: number) {
-        this.moviesService.getMovies(genreId)
+    private getMovies(genreId?: number) {
+        this.cleanUp();
+        this.sub$ = this.moviesService.getMovies(genreId)
             .pipe(takeUntil(this.destroy$))
-            .subscribe((x) => {
-                if (x) {
-                    this.movies = x;
-                }
+            .subscribe((movies: MoviesResponse) => {
+                this.movies = movies;
             });
     }
 
@@ -48,6 +48,12 @@ export class MoviesComponent implements OnInit, OnDestroy {
                     this.genres = x.genres;
                 }
             });
+    }
+
+    private cleanUp() {
+        if (this.sub$ && !this.sub$.closed) {
+            this.sub$.unsubscribe();
+        }
     }
 
     ngOnDestroy(): void {

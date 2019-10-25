@@ -1,7 +1,6 @@
 import {Injectable} from '@angular/core';
-import {HttpClient} from '@angular/common/http';
+import {HttpClient, HttpParams} from '@angular/common/http';
 import {Observable} from 'rxjs/Observable';
-import {map} from 'rxjs/operators';
 
 import {MoviesResponse, Movie, TrailersResponse, Genres} from './movies.interface';
 
@@ -14,39 +13,28 @@ export class MoviesService {
 
     }
 
-    getMovies(genreId: number): Observable<MoviesResponse> {
-
-        let url = `${this.apiHost}/discover/movie?sort_by=popularity.desc&api_key=${this.apiKey}`;
-
+    getMovies(genreId?: number): Observable<MoviesResponse> {
+        const obj: any = {
+            sort_by: 'popularity.desc',
+            api_key: this.apiKey
+        };
         if (genreId) {
-            url = url + `&with_genres=${genreId}`;
+            obj.with_genres = genreId;
         }
-
-        return this.http.get(url)
-            .pipe(
-                map((res: MoviesResponse) => res)
-            );
+        const params = new HttpParams({fromObject: obj});
+        return this.http.get<MoviesResponse>(`${this.apiHost}/discover/movie`, {params});
     }
 
     getMovie(movieId: number): Observable<Movie> {
-        return this.http.get(`${this.apiHost}/movie/${movieId}?api_key=${this.apiKey}`)
-            .pipe(
-                map((res: Movie) => res)
-            );
+        return this.http.get<Movie>(`${this.apiHost}/movie/${movieId}?api_key=${this.apiKey}`);
     }
 
     /* Получить список трейлеров или видео */
     getVideos(movieId: number): Observable<TrailersResponse> {
-        return this.http.get(`${this.apiHost}/movie/${movieId}/videos?api_key=${this.apiKey}`)
-            .pipe(
-                map((res: TrailersResponse) => res)
-            );
+        return this.http.get<TrailersResponse>(`${this.apiHost}/movie/${movieId}/videos?api_key=${this.apiKey}`);
     }
 
     getGenres(): Observable<Genres> {
-        return this.http.get(`${this.apiHost}/genre/movie/list?api_key=15541eba921815cd9399ab49a5977f16`)
-            .pipe(
-                map((res: Genres) => res)
-            );
+        return this.http.get<Genres>(`${this.apiHost}/genre/movie/list?api_key=15541eba921815cd9399ab49a5977f16`);
     }
 }
